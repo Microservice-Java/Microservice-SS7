@@ -4,8 +4,11 @@ server:
 spring:
   application:
     name: api-gateway
-
+  config:
+    import: "optional:configserver:"
   cloud:
+    config:
+      enabled: false
     gateway:
       routes:
         # Route 1: Customer Service

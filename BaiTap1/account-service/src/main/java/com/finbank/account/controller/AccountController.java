@@ -1,5 +1,7 @@
 package com.finbank.account.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,11 +16,38 @@ import java.util.Map;
 @RequestMapping("/api/accounts")
 public class AccountController {
 
-    @GetMapping
-    public ResponseEntity<Map<String, Object>> getAllAccounts() {
+    @Autowired
+    private Environment environment;
+
+    private int getPort() {
+        String localPort = environment.getProperty("local.server.port");
+        if (localPort != null && !localPort.isEmpty()) {
+            return Integer.parseInt(localPort);
+        }
+        String serverPort = environment.getProperty("server.port");
+        if (serverPort != null && !serverPort.isEmpty()) {
+            return Integer.parseInt(serverPort);
+        }
+        return 8082;
+    }
+
+    @GetMapping("/info")
+    public ResponseEntity<Map<String, Object>> getAccountInfo() {
+        int currentPort = getPort();
         return ResponseEntity.ok(Map.of(
                 "service", "account-service",
-                "port", 8082,
+                "port", currentPort,
+                "status", "UP",
+                "message", "Account Service instance responding on port " + currentPort
+        ));
+    }
+
+    @GetMapping
+    public ResponseEntity<Map<String, Object>> getAllAccounts() {
+        int currentPort = getPort();
+        return ResponseEntity.ok(Map.of(
+                "service", "account-service",
+                "port", currentPort,
                 "data", "List of FinBank accounts"
         ));
     }
@@ -29,7 +58,8 @@ public class AccountController {
                 "id", id,
                 "accountNumber", "1010888999",
                 "balance", 50000000.0,
-                "currency", "VND"
+                "currency", "VND",
+                "port", getPort()
         ));
     }
 
@@ -38,7 +68,8 @@ public class AccountController {
         return ResponseEntity.ok(Map.of(
                 "message", "Account created successfully via Gateway",
                 "accountNumber", "1010999000",
-                "status", "ACTIVE"
+                "status", "ACTIVE",
+                "port", getPort()
         ));
     }
 }

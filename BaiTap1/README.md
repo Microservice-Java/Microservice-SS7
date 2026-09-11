@@ -1,10 +1,10 @@
-# FinBank Digital Bank - API Gateway Routing Architecture (SS7 - Exercise 1)
+# FinBank Digital Bank - API Gateway Routing & Load Balancing (SS7)
 
-Dự án xây dựng **API Gateway** làm điểm vào duy nhất (Single Entry Point) cho toàn bộ hệ thống Microservice Ngân hàng Số FinBank.
+Dự án xây dựng **API Gateway** làm điểm vào duy nhất (Single Entry Point) kết hợp **Spring Cloud LoadBalancer** phân phối tải động qua nhiều instances của Microservice Ngân hàng Số FinBank.
 
 ---
 
-## 1. Kiến Trúc Điểm Vào Duy Nhất (Single Entry Point Port 8222)
+## 1. Kiến Trúc Điểm Vào Duy Nhất & Cân Bằng Tải
 
 ```text
                              [Client Apps / Postman]
@@ -18,66 +18,96 @@ Dự án xây dựng **API Gateway** làm điểm vào duy nhất (Single Entry 
              ▼                          ▼                          ▼
     ┌─────────────────┐        ┌─────────────────┐        ┌─────────────────┐
     │customer-service │        │ account-service │        │transaction-serv │
-    │   (Port 8081)   │        │   (Port 8082)   │        │   (Port 8083)   │
+    │   (Port 8081)   │        │   (3 Instances) │        │   (Port 8083)   │
+    └─────────────────┘        └────────┬────────┘        └─────────────────┘
+                                        │
+             ┌──────────────────────────┼──────────────────────────┐
+             ▼                          ▼                          ▼
+    ┌─────────────────┐        ┌─────────────────┐        ┌─────────────────┐
+    │ Instance 1      │        │ Instance 2      │        │ Instance 3      │
+    │ (Port 8082)     │        │ (Port 8092)     │        │ (Port 8102)     │
     └─────────────────┘        └─────────────────┘        └─────────────────┘
 ```
 
-### Ưu điểm của API Gateway:
-- **Tập trung cổng vào**: Client (Mobile app / Web app) chỉ cần nhớ duy nhất 1 địa chỉ `http://localhost:8222` thay vì phải lưu từng IP/Port của từng service (`8081`, `8082`, `8083`).
-- **An toàn & Bảo mật**: Ẩn hoàn toàn cấu trúc mạng nội bộ và port thực tế của các microservice phía sau.
-- **Dễ dàng bảo trì**: Khi một microservice thay đổi port hoặc scale thành nhiều instances, ứng dụng client hoàn toàn không bị ảnh hưởng.
+### Ưu điểm của Cấu Hình:
+- **Tập trung cổng vào**: Client (Mobile app / Web app) chỉ cần gọi duy nhất 1 địa chỉ `http://localhost:8222`.
+- **Phân phối tải động (Dynamic Load Balancing)**: Tự động chia đều request qua các instance theo thuật toán Round-Robin (`lb://account-service`).
+- **Khả năng chống chịu lỗi (Fault Tolerance)**: Khi 1 instance bị sự cố, Gateway và Discovery Server tự động loại bỏ instance đó và chuyển request tới các instance lành mạnh còn lại.
 
 ---
 
-## 2. Danh Sách Định Tuyến (Gateway Routes Configuration)
+## 2. Thử Nghiệm Load Balancing Với 3 Instance Account Service
 
-Cấu hình các Route trong `application.yml` của `api-gateway`:
+### 2.1 Hướng Dẫn Chạy Nhiều Instance Trực Tiếp Từ Terminal
 
-| Service ID | Port Nội Bộ | Predicate Path | Gateway Endpoint URL (Port 8222) |
-| :--- | :--- | :--- | :--- |
-| `customer-service` | `8081` | `/api/customers/**` | [http://localhost:8222/api/customers](http://localhost:8222/api/customers) |
-| `account-service` | `8082` | `/api/accounts/**` | [http://localhost:8222/api/accounts](http://localhost:8222/api/accounts) |
-| `transaction-service` | `8083` | `/api/transactions/**` | [http://localhost:8222/api/transactions](http://localhost:8222/api/transactions) |
-| `loan-service` | `8084` | `/api/loans/**` | [http://localhost:8222/api/loans](http://localhost:8222/api/loans) |
-| `notification-service` | `8085` | `/api/notifications/**` | [http://localhost:8222/api/notifications](http://localhost:8222/api/notifications) |
-
----
-
-## 3. Thứ Tự Khởi Chạy Hệ Thống
-
-> [!IMPORTANT]
-> Vui lòng khởi chạy theo đúng thứ tự 4 bước dưới đây để các service tự động đăng ký và kết nối thành công.
-
-### Bước 1: Khởi Chạy Config Server (Port 8888)
+#### Instance 1 (Port 8082 - Mặc định):
 ```bash
-cd config-server && ./gradlew bootRun
+cd account-service
+.\gradlew.bat bootRun
 ```
 
-### Bước 2: Khởi Chạy Eureka Server (Port 8761)
+#### Instance 2 (Port 8092):
 ```bash
-cd discovery-server && ./gradlew bootRun
+cd account-service
+.\gradlew.bat bootRun --args='--server.port=8092'
 ```
 
-### Bước 3: Khởi Chạy Các Microservices Nghiệp Vụ (Port 8081 - 8085)
+#### Instance 3 (Port 8102):
 ```bash
-cd customer-service && ./gradlew bootRun
-cd account-service && ./gradlew bootRun
-cd transaction-service && ./gradlew bootRun
-```
-
-### Bước 4: Khởi Chạy FinBank API Gateway (Port 8222)
-```bash
-cd api-gateway && ./gradlew bootRun
+cd account-service
+.\gradlew.bat bootRun --args='--server.port=8102'
 ```
 
 ---
 
-## 4. Hướng Dẫn Kiểm Thử Bằng Postman Collection
+### 2.2 Xác Nhận Trên Eureka Dashboard (Port 8761)
+
+Truy cập `http://localhost:8761`, Eureka Dashboard xác nhận `ACCOUNT-SERVICE` hiển thị **3 instances** registered:
+
+![Eureka Dashboard 3 Instances](screenshots/eureka_dashboard_3_instances.png)
+
+---
+
+### 2.3 Kết Quả Kiểm Thử Gọi API 9 Lần Liên Tục Qua Gateway (`GET /api/accounts/info`)
+
+Thực hiện 9 request tới Gateway endpoint `http://localhost:8222/api/accounts/info`:
+
+| Lần gọi | Port trả về | Instance | Thuật toán cân bằng tải |
+| :---: | :---: | :---: | :---: |
+| 1 | `8082` | Instance 1 | Round Robin |
+| 2 | `8102` | Instance 3 | Round Robin |
+| 3 | `8092` | Instance 2 | Round Robin |
+| 4 | `8082` | Instance 1 | Round Robin |
+| 5 | `8102` | Instance 3 | Round Robin |
+| 6 | `8092` | Instance 2 | Round Robin |
+| 7 | `8082` | Instance 1 | Round Robin |
+| 8 | `8102` | Instance 3 | Round Robin |
+| 9 | `8092` | Instance 2 | Round Robin |
+
+> **Kết luận**: Gateway phân phối luân phiên 100% đều đặn giữa 3 ports (`8082`, `8102`, `8092`).
+
+---
+
+### 2.4 Kết Quả Kiểm Thử Khi Tắt Instance Port 8102 (Failover Verification)
+
+Tắt Instance 3 (port `8102`) và thực hiện 6 request liên tiếp tới `http://localhost:8222/api/accounts/info`:
+
+| Lần gọi | Port trả về | Trạng thái Instance | Trạng thái Route |
+| :---: | :---: | :---: | :---: |
+| 1 | `8082` | Instance 1 | Thành công (200 OK) |
+| 2 | `8092` | Instance 2 | Thành công (200 OK) |
+| 3 | `8082` | Instance 1 | Thành công (200 OK) |
+| 4 | `8092` | Instance 2 | Thành công (200 OK) |
+| 5 | `8082` | Instance 1 | Thành công (200 OK) |
+| 6 | `8092` | Instance 2 | Thành công (200 OK) |
+
+> **Kết luận**: Gateway tự động loại bỏ port `8102` ra khỏi tập load balancing và phân phối đều cho 2 instances còn lại (`8082` và `8092`).
+
+---
+
+## 3. Hướng Dẫn Kiểm Thử Bằng Postman Collection
 
 File Postman Collection được lưu trữ tại `postman/FinBank_Gateway_Collection.json`.
 
-1. Mở ứng dụng **Postman** -> **Import** file `postman/FinBank_Gateway_Collection.json`.
-2. Kiểm thử các yêu cầu gọi **Duy nhất qua Port 8222**:
-   - `GET http://localhost:8222/api/customers` -> Trả về thông tin từ `customer-service`
-   - `POST http://localhost:8222/api/accounts` -> Định tuyến thành công tới `account-service`
-   - `GET http://localhost:8222/api/transactions` -> Định tuyến thành công tới `transaction-service`
+1. Mở **Postman** -> **Import** file `postman/FinBank_Gateway_Collection.json`.
+2. Chạy endpoint **GET Account Instance Info (Load Balancing Check)** (`http://localhost:8222/api/accounts/info`) nhiều lần để quan sát trường `"port"` luân phiên trong JSON response.

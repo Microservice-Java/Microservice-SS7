@@ -43,6 +43,20 @@
 			"name": "Account Service Routes (via Gateway 8222)",
 			"item": [
 				{
+					"name": "GET Account Instance Info (Load Balancing Check)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8222/api/accounts/info",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8222",
+							"path": ["api", "accounts", "info"]
+						}
+					}
+				},
+				{
 					"name": "GET All Accounts",
 					"request": {
 						"method": "GET",
