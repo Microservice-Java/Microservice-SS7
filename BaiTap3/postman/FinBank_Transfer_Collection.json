@@ -1,0 +1,149 @@
+{
+  "info": {
+    "_postman_id": "87e31b40-23a1-4a2a-bf02-9988ff771122",
+    "name": "FinBank Synchronous Transfer Collection (SS7 - BaiTap3)",
+    "description": "Postman Collection test luong chuyen tien dong bo giua Microservices qua RestTemplate & API Gateway (Port 8222)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Account Service - Lay thong tin TK 1001 ban dau",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8222/api/accounts/1001",
+          "protocol": "http",
+          "host": [ "localhost" ],
+          "port": "8222",
+          "path": [ "api", "accounts", "1001" ]
+        }
+      }
+    },
+    {
+      "name": "2. Account Service - Lay thong tin TK 1002 ban dau",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8222/api/accounts/1002",
+          "protocol": "http",
+          "host": [ "localhost" ],
+          "port": "8222",
+          "path": [ "api", "accounts", "1002" ]
+        }
+      }
+    },
+    {
+      "name": "3. Test Case 1 - Chuyen 2,000,000 VND tu 1001 -> 1002 (Thanh cong)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"fromAccountNumber\": \"1001\",\n    \"toAccountNumber\": \"1002\",\n    \"amount\": 2000000,\n    \"description\": \"Chuyển tiền thanh toán hóa đơn\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8222/api/transactions/transfer",
+          "protocol": "http",
+          "host": [ "localhost" ],
+          "port": "8222",
+          "path": [ "api", "transactions", "transfer" ]
+        }
+      }
+    },
+    {
+      "name": "4. Account Service - Kiem tra lai so du TK 1001 (Con 8,000,000 VND)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8222/api/accounts/1001/balance",
+          "protocol": "http",
+          "host": [ "localhost" ],
+          "port": "8222",
+          "path": [ "api", "accounts", "1001", "balance" ]
+        }
+      }
+    },
+    {
+      "name": "5. Account Service - Kiem tra lai so du TK 1002 (Tang len 7,000,000 VND)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8222/api/accounts/1002/balance",
+          "protocol": "http",
+          "host": [ "localhost" ],
+          "port": "8222",
+          "path": [ "api", "accounts", "1002", "balance" ]
+        }
+      }
+    },
+    {
+      "name": "6. Test Case 2 - Chuyen 100,000,000 VND tu 1001 -> 1002 (That bai - Thieu so du)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"fromAccountNumber\": \"1001\",\n    \"toAccountNumber\": \"1002\",\n    \"amount\": 100000000,\n    \"description\": \"Chuyển tiền vượt quá số dư\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8222/api/transactions/transfer",
+          "protocol": "http",
+          "host": [ "localhost" ],
+          "port": "8222",
+          "path": [ "api", "transactions", "transfer" ]
+        }
+      }
+    },
+    {
+      "name": "7. Test Case 3 - Chuyen tien den TK 9999 khong ton tai (That bai)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"fromAccountNumber\": \"1001\",\n    \"toAccountNumber\": \"9999\",\n    \"amount\": 1000000,\n    \"description\": \"Chuyển tiền tài khoản không tồn tại\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8222/api/transactions/transfer",
+          "protocol": "http",
+          "host": [ "localhost" ],
+          "port": "8222",
+          "path": [ "api", "transactions", "transfer" ]
+        }
+      }
+    },
+    {
+      "name": "8. Transaction Service - Xem danh sach tat ca lich su giao dich",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8222/api/transactions",
+          "protocol": "http",
+          "host": [ "localhost" ],
+          "port": "8222",
+          "path": [ "api", "transactions" ]
+        }
+      }
+    }
+  ]
+}

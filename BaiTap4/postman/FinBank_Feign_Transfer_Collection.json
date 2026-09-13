@@ -1,0 +1,163 @@
+{
+  "info": {
+    "_postman_id": "99e41b40-23a1-4a2a-bf02-9988ff779944",
+    "name": "FinBank FeignClient Transfer Collection (SS7 - BaiTap4)",
+    "description": "Postman Collection test luong chuyen tien OpenFeign va API /detail ghep du lieu 3 Microservices qua Gateway (Port 8222)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Customer Service - Xem danh sach khach hang",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8222/api/customers",
+          "protocol": "http",
+          "host": [ "localhost" ],
+          "port": "8222",
+          "path": [ "api", "customers" ]
+        }
+      }
+    },
+    {
+      "name": "2. Account Service - Lay thong tin TK 1001 ban dau",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8222/api/accounts/1001",
+          "protocol": "http",
+          "host": [ "localhost" ],
+          "port": "8222",
+          "path": [ "api", "accounts", "1001" ]
+        }
+      }
+    },
+    {
+      "name": "3. Account Service - Lay thong tin TK 1002 ban dau",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8222/api/accounts/1002",
+          "protocol": "http",
+          "host": [ "localhost" ],
+          "port": "8222",
+          "path": [ "api", "accounts", "1002" ]
+        }
+      }
+    },
+    {
+      "name": "4. Test Case 1 - Chuyen 2,000,000 VND tu 1001 -> 1002 qua FeignClient (Thanh cong)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"fromAccountNumber\": \"1001\",\n    \"toAccountNumber\": \"1002\",\n    \"amount\": 2000000,\n    \"description\": \"Chuyển tiền qua OpenFeign\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8222/api/transactions/transfer",
+          "protocol": "http",
+          "host": [ "localhost" ],
+          "port": "8222",
+          "path": [ "api", "transactions", "transfer" ]
+        }
+      }
+    },
+    {
+      "name": "5. Account Service - Kiem tra so du TK 1001 sau chuyen (Con 8,000,000 VND)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8222/api/accounts/1001/balance",
+          "protocol": "http",
+          "host": [ "localhost" ],
+          "port": "8222",
+          "path": [ "api", "accounts", "1001", "balance" ]
+        }
+      }
+    },
+    {
+      "name": "6. Account Service - Kiem tra so du TK 1002 sau chuyen (Tang len 7,000,000 VND)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8222/api/accounts/1002/balance",
+          "protocol": "http",
+          "host": [ "localhost" ],
+          "port": "8222",
+          "path": [ "api", "accounts", "1002", "balance" ]
+        }
+      }
+    },
+    {
+      "name": "7. NEW API - GET /api/transactions/{id}/detail (Ghep du lieu 3 service)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8222/api/transactions/1/detail",
+          "protocol": "http",
+          "host": [ "localhost" ],
+          "port": "8222",
+          "path": [ "api", "transactions", "1", "detail" ]
+        }
+      }
+    },
+    {
+      "name": "8. Test Case 2 - Chuyen 100,000,000 VND (That bai - Thieu so du)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"fromAccountNumber\": \"1001\",\n    \"toAccountNumber\": \"1002\",\n    \"amount\": 100000000,\n    \"description\": \"Chuyển tiền vượt quá số dư\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8222/api/transactions/transfer",
+          "protocol": "http",
+          "host": [ "localhost" ],
+          "port": "8222",
+          "path": [ "api", "transactions", "transfer" ]
+        }
+      }
+    },
+    {
+      "name": "9. Test Case 3 - Chuyen tien toi TK 9999 khong ton tai (That bai)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"fromAccountNumber\": \"1001\",\n    \"toAccountNumber\": \"9999\",\n    \"amount\": 1000000,\n    \"description\": \"Chuyển tiền tài khoản không tồn tại\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8222/api/transactions/transfer",
+          "protocol": "http",
+          "host": [ "localhost" ],
+          "port": "8222",
+          "path": [ "api", "transactions", "transfer" ]
+        }
+      }
+    }
+  ]
+}

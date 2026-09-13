@@ -1,0 +1,6 @@
+rootProject.name = 'SS7-BaiTap3'
+
+include 'discovery-server'
+include 'api-gateway'
+include 'account-service'
+include 'transaction-service'
